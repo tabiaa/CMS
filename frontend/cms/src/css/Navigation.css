@@ -1,0 +1,21 @@
+
+.background-container {
+    background-image: url('../images/background.jpg'); 
+    background-size: cover;
+    background-position: center;
+    height: 100vh; /* Full viewport height */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.content {
+    text-align: center;
+}
+/* Heading style */
+.heading {
+    font-size: 3rem; /* Large font size */
+    color: #fff; /* White text color */
+    margin-bottom: 40px; /* Space between heading and buttons */
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.6); /* Shadow for better readability */
+    font-family: 'Arial', sans-serif; /* Font family */
+}
