@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { Modal, Button } from 'react-bootstrap';
 import EditComplaintForm from './EditComplaintForm';
 import Logout from './Logout';
 import axios from 'axios';
@@ -7,7 +6,9 @@ import axios from 'axios';
 const SupervisorDashboard = () => {
     const [complaints, setComplaints] = useState([]);
     const [editingComplaint, setEditingComplaint] = useState(null);
-    const [showModal, setShowModal] = useState(false);
+    const [filterAging, setFilterAging] = useState(''); // State for aging filter
+    const [filterDispGrpCd, setFilterDispGrpCd] = useState(''); // State for disp_grp_cd filter
+    const [filteredComplaints, setFilteredComplaints] = useState([]);
     const username = localStorage.getItem('username');
 
     useEffect(() => {
@@ -15,6 +16,7 @@ const SupervisorDashboard = () => {
             try {
                 const response = await axios.get(`http://localhost:5000/complaints?username=${username}`);
                 setComplaints(response.data);
+                setFilteredComplaints(response.data); // Initialize filtered complaints
             } catch (error) {
                 console.error('Error fetching complaints:', error);
             }
@@ -25,18 +27,60 @@ const SupervisorDashboard = () => {
 
     const handleEdit = (complaint) => {
         setEditingComplaint(complaint);
-        setShowModal(true); 
     };
 
-    const handleClose = () => {
-        setShowModal(false); 
-        setEditingComplaint(null); 
+    const closeEditForm = () => {
+        setEditingComplaint(null);
+    };
+
+    // Get unique options for dropdown filters
+    const agingOptions = [...new Set(complaints.map((complaint) => complaint.mtr_aging))];
+    const dispGrpCdOptions = [...new Set(complaints.map((complaint) => complaint.disp_grp_cd))];
+
+    const handleFilter = () => {
+        const filtered = complaints.filter((complaint) => {
+            const matchesAging = filterAging ? complaint.mtr_aging.toString() === filterAging : true;
+            const matchesDispGrpCd = filterDispGrpCd ? complaint.disp_grp_cd === filterDispGrpCd : true;
+            return matchesAging && matchesDispGrpCd;
+        });
+        setFilteredComplaints(filtered);
     };
 
     return (
         <div>
             <h1>Supervisor Dashboard</h1>
             <Logout />
+
+            {/* Filters Section */}
+            <div className="filters">
+                <select
+                    value={filterAging}
+                    onChange={(e) => setFilterAging(e.target.value)}
+                >
+                    <option value="">Filter by Aging</option>
+                    {agingOptions.map((option, index) => (
+                        <option key={index} value={option}>
+                            {option}
+                        </option>
+                    ))}
+                </select>
+
+                <select
+                    value={filterDispGrpCd}
+                    onChange={(e) => setFilterDispGrpCd(e.target.value)}
+                >
+                    <option value="">Filter by Dispatch Group Code</option>
+                    {dispGrpCdOptions.map((option, index) => (
+                        <option key={index} value={option}>
+                            {option}
+                        </option>
+                    ))}
+                </select>
+
+                <button onClick={handleFilter}>Filter</button>
+            </div>
+
+            {/* Complaints Table */}
             <table className="table table-bordered table-dark">
                 <thead>
                     <tr>
@@ -56,7 +100,7 @@ const SupervisorDashboard = () => {
                     </tr>
                 </thead>
                 <tbody>
-                    {complaints.map((complaint) => (
+                    {filteredComplaints.map((complaint) => (
                         <tr key={complaint.fa_id}>
                             <td>
                                 <button onClick={() => handleEdit(complaint)}>Edit</button>
@@ -79,7 +123,7 @@ const SupervisorDashboard = () => {
             </table>
 
             {editingComplaint && (
-                <EditComplaintForm complaint={editingComplaint} handleClose={handleClose} />
+                <EditComplaintForm complaint={editingComplaint} closeForm={closeEditForm} />
             )}
         </div>
     );

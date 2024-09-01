@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Modal, Button } from 'react-bootstrap';
 import axios from 'axios';
 
-const EditComplaintForm = ({ complaint, handleClose }) => {
+const EditComplaintForm = ({ complaint, closeForm }) => {
     const [fitters, setFitters] = useState([]);
     const [selectedFitter, setSelectedFitter] = useState('');
     const [loading, setLoading] = useState(true);
@@ -32,7 +32,7 @@ const EditComplaintForm = ({ complaint, handleClose }) => {
                 cms_status: 'assign'
             });
             console.log('Complaint updated:', response.data);
-            handleClose(); 
+            closeForm(); // Close the form
         } catch (error) {
             console.error('Error updating complaint:', error);
         }
@@ -42,14 +42,15 @@ const EditComplaintForm = ({ complaint, handleClose }) => {
     if (error) return <p>{error}</p>;
 
     return (
-        <Modal show onHide={handleClose} >
+        <Modal show onHide={closeForm}>
             <Modal.Header closeButton>
                 <Modal.Title>Edit Complaint</Modal.Title>
             </Modal.Header>
             <Modal.Body>
                 <form onSubmit={handleSubmit}>
                     <label htmlFor="fitter">Assign to Fitter:</label>
-                    <select className='form-control form-control-sm'
+                    <select
+                        className='form-control form-control-sm'
                         id="fitter"
                         value={selectedFitter}
                         onChange={(e) => setSelectedFitter(e.target.value)}
@@ -62,7 +63,7 @@ const EditComplaintForm = ({ complaint, handleClose }) => {
                             </option>
                         ))}
                     </select>
-                    <button type="submit" className='btn btn-danger mt-4'>Save</button>
+                    <Button type="submit" className='btn btn-danger mt-4'>Save</Button>
                 </form>
             </Modal.Body>
         </Modal>
