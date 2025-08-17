@@ -73,15 +73,24 @@ app.post('/login', (req, res) => {
 });
 
 app.get('/complaints', (req, res) => {
-    const username = req.query.username;
-    const query = 'select a.* from cms.complaints a,cms.user_dispatch_grp b where a.disp_grp_cd=b.dispatch_grp_cd and b.username = ?';
-    db.query(query,[username], (err, result) => {
+    const { username, status } = req.query;
+
+    let query = `SELECT a.* FROM cms.complaints a, cms.user_dispatch_grp b 
+                 WHERE a.disp_grp_cd = b.dispatch_grp_cd AND b.username = ?`;
+
+    if (status) {
+        query += ' AND a.cms_status = ?';
+    }
+
+    const params = status ? [username, status] : [username];
+    db.query(query, params, (err, result) => {
         if (err) {
             return res.status(500).json({ error: err.message });
         }
-        res.status(200).json(result); 
+        res.status(200).json(result);
     });
 });
+
 
 
 app.get('/fitters', (req, res) => {
@@ -109,6 +118,24 @@ app.put('/complaints/:id', (req, res) => {
         }
         res.status(200).json({ message: 'Complaint updated successfully' });
     });
+});
+// Mark complaint as complete (Fitter action)
+app.put('/complaints/complete/:fa_id', (req, res) => {
+  const { fa_id } = req.params;
+
+  const query = `
+    UPDATE complaints 
+    SET cms_status = 'complete', last_updated = NOW()
+    WHERE fa_id = ?
+  `;
+
+  db.query(query, [fa_id], (err, result) => {
+    if (err) {
+      console.error("Error updating complaint to complete:", err);
+      return res.status(500).send("Error updating complaint");
+    }
+    res.send({ message: "Complaint marked as complete" });
+  });
 });
 
 app.get('/assignedComplaints', (req, res) => {
